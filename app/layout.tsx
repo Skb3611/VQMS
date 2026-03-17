@@ -2,9 +2,12 @@ import { Geist, Geist_Mono, Merriweather } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
-
-const merriweather = Merriweather({subsets:['latin'],variable:'--font-serif'});
+import { cn } from "@/lib/utils"
+import { ClerkProvider } from "@clerk/nextjs"
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  variable: "--font-serif",
+})
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -25,11 +28,19 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontSans.variable, fontMono.variable, "font-serif", merriweather.variable)}
+      className={cn(
+        "antialiased",
+        fontSans.variable,
+        fontMono.variable,
+        "font-serif",
+        merriweather.variable
+      )}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <ClerkProvider>
+        <body>
+          <ThemeProvider>{children}</ThemeProvider>
+        </body>
+      </ClerkProvider>
     </html>
   )
 }

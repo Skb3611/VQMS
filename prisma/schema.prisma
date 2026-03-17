@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  BUSINESS
+}
+
+enum Status {
+  WAITING
+  CALLED
+  COMPLETED
+}
+
+model User {
+  id      Int    @id @default(autoincrement())
+  clerkId String @unique
+  email   String @unique
+  name    String
+  role    Role?
+
+  stores Store[]
+  tokens Token[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Store {
+  id   Int     @id @default(autoincrement())
+  name String
+  desc String?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  queue Queue?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Queue {
+  id Int @id @default(autoincrement())
+
+  storeId Int   @unique
+  store   Store @relation(fields: [storeId], references: [id])
+
+  tokens Token[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id Int @id @default(autoincrement())
+
+  tokenNumber Int
+  status      Status @default(WAITING)
+
+  queueId Int
+  queue   Queue @relation(fields: [queueId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([queueId, tokenNumber])
+}

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { SignInButton } from "@clerk/nextjs"
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import {
   Clock,
   Users,
@@ -13,10 +13,13 @@ import {
   Menu,
   X,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function Home() {
+  const { user, isSignedIn } = useUser()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -45,11 +48,15 @@ export default function Home() {
             >
               Use Cases
             </a>
-            <SignInButton>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Get Started
-              </Button>
-            </SignInButton>
+            {!isSignedIn ? (
+              <SignInButton>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  Get Started
+                </Button>
+              </SignInButton>
+            ) : (
+              <UserButton />
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -82,11 +89,15 @@ export default function Home() {
             >
               Use Cases
             </a>
-            <SignInButton>
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                Get Started
-              </Button>
-            </SignInButton>
+            {!isSignedIn ? (
+              <SignInButton>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  Get Started
+                </Button>
+              </SignInButton>
+            ) : (
+              <UserButton />
+            )}
           </div>
         )}
       </nav>
@@ -104,11 +115,18 @@ export default function Home() {
               crowds effortlessly.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button className="bg-primary px-8 py-6 text-base text-primary-foreground hover:bg-primary/90">
+              <Button
+                onClick={() => router.push("/dashboard")}
+                className="bg-primary px-8 py-6 text-base text-primary-foreground hover:bg-primary/90"
+              >
                 Join Queue
                 <ArrowRight className="ml-2" size={20} />
               </Button>
-              <Button variant="outline" className="px-8 py-6 text-base">
+              <Button
+                onClick={() => router.push("/dashboard")}
+                variant="outline"
+                className="px-8 py-6 text-base"
+              >
                 Create Store
               </Button>
             </div>

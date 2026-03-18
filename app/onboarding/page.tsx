@@ -1,160 +1,173 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import Link from 'next/link'
-import { Users, Building2, ArrowRight } from 'lucide-react'
-import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import Link from "next/link"
+import { Users, Building2, ArrowRight } from "lucide-react"
+import { useEffect, useState } from "react"
+import { updateOnboarding } from "@/lib/server-actions"
+import { useRouter } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 
 export default function OnboardingPage() {
-  const [selected, setSelected] = useState<'user' | 'business' | null>(null)
-
+  const [selected, setSelected] = useState<"user" | "business" | null>(null)
+  const router = useRouter()
+  const { user } = useUser()
+  useEffect(() => {
+    if (user?.publicMetadata.onboarding) {
+      router.push("/dashboard")
+    }
+  }, [user])
   return (
-    <main className="min-h-screen bg-background flex flex-col">
+    <main className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <Link href="/" className="text-lg font-bold text-primary">
-            VirtualQueue
-          </Link>
-        </div>
-      </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-4xl">
           {/* Heading */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-balance">
+          <div className="mb-12 text-center">
+            <h1 className="mb-4 text-4xl font-bold text-balance text-foreground md:text-5xl">
               Let's Get Started
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
               Choose your account type to begin managing queues effectively
             </p>
           </div>
 
           {/* Selection Cards */}
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="mb-8 grid gap-8 md:grid-cols-2">
             {/* Individual User Card */}
-            <button
-              onClick={() => setSelected('user')}
-              className="focus:outline-none transition-all duration-200"
+            <div
+              onClick={async () => {
+                await updateOnboarding("user")
+                router.push("/dashboard")
+              }}
+              className="transition-all duration-200 focus:outline-none"
             >
               <Card
-                className={`p-8 cursor-pointer transition-all duration-200 ${
-                  selected === 'user'
-                    ? 'border-primary bg-primary/5 shadow-lg'
-                    : 'border-border hover:border-primary/50 hover:shadow-md'
+                className={`cursor-pointer p-8 transition-all duration-200 ${
+                  selected === "user"
+                    ? "border-primary bg-primary/5 shadow-lg"
+                    : "border-border hover:border-primary/50 hover:shadow-md"
                 }`}
               >
                 <div className="flex flex-col items-center text-center">
                   <div
-                    className={`w-16 h-16 rounded-lg flex items-center justify-center mb-6 transition-colors duration-200 ${
-                      selected === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
+                    className={`mb-6 flex h-16 w-16 items-center justify-center rounded-lg transition-colors duration-200 ${
+                      selected === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    <Users className="w-8 h-8" />
+                    <Users className="h-8 w-8" />
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                  <h2 className="mb-2 text-2xl font-bold text-foreground">
                     I'm a Customer
                   </h2>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="mb-6 text-muted-foreground">
                     Join queues online, skip the line, and manage your wait time
                   </p>
-                  <ul className="text-sm text-muted-foreground space-y-2 mb-6 text-left w-full">
+                  <ul className="mb-6 w-full space-y-2 text-left text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Join any queue from your phone</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Real-time wait time estimates</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Get notifications when it's your turn</span>
                     </li>
                   </ul>
                   <div className="w-full">
                     <Button
                       className={`w-full transition-all duration-200 ${
-                        selected === 'user'
-                          ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                        selected === "user"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       }`}
                     >
-                      Continue as Customer <ArrowRight className="w-4 h-4 ml-2" />
+                      Continue as Customer{" "}
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </Card>
-            </button>
+            </div>
 
             {/* Business Card */}
-            <button
-              onClick={() => setSelected('business')}
-              className="focus:outline-none transition-all duration-200"
+            <div
+              onClick={async () => {
+                await updateOnboarding("business")
+                router.push("/dashboard")
+              }}
+              className="transition-all duration-200 focus:outline-none"
             >
               <Card
-                className={`p-8 cursor-pointer transition-all duration-200 ${
-                  selected === 'business'
-                    ? 'border-primary bg-primary/5 shadow-lg'
-                    : 'border-border hover:border-primary/50 hover:shadow-md'
+                className={`cursor-pointer p-8 transition-all duration-200 ${
+                  selected === "business"
+                    ? "border-primary bg-primary/5 shadow-lg"
+                    : "border-border hover:border-primary/50 hover:shadow-md"
                 }`}
               >
                 <div className="flex flex-col items-center text-center">
                   <div
-                    className={`w-16 h-16 rounded-lg flex items-center justify-center mb-6 transition-colors duration-200 ${
-                      selected === 'business'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
+                    className={`mb-6 flex h-16 w-16 items-center justify-center rounded-lg transition-colors duration-200 ${
+                      selected === "business"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    <Building2 className="w-8 h-8" />
+                    <Building2 className="h-8 w-8" />
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                  <h2 className="mb-2 text-2xl font-bold text-foreground">
                     I'm a Business
                   </h2>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="mb-6 text-muted-foreground">
                     Streamline operations and improve customer satisfaction
                   </p>
-                  <ul className="text-sm text-muted-foreground space-y-2 mb-6 text-left w-full">
+                  <ul className="mb-6 w-full space-y-2 text-left text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Manage customer queues efficiently</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Analytics and insights</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
+                      <span className="mt-1 text-primary">✓</span>
                       <span>Reduce wait times and improve service</span>
                     </li>
                   </ul>
                   <div className="w-full">
                     <Button
                       className={`w-full transition-all duration-200 ${
-                        selected === 'business'
-                          ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                        selected === "business"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       }`}
                     >
-                      Continue as Business <ArrowRight className="w-4 h-4 ml-2" />
+                      Continue as Business{" "}
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </Card>
-            </button>
+            </div>
           </div>
 
           {/* Footer note */}
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              Already have an account?{' '}
-              <Link href="/login" className="text-primary hover:underline font-medium">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-primary hover:underline"
+              >
                 Sign in
               </Link>
             </p>

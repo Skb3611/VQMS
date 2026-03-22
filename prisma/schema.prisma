@@ -25,7 +25,7 @@ model User {
   name    String
   role    Role?
 
-  stores Store[]
+  store  Store?
   tokens Token[]
 
   createdAt DateTime @default(now())
@@ -37,7 +37,7 @@ model Store {
   name String
   desc String?
 
-  userId Int
+  userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 
   queue Queue?

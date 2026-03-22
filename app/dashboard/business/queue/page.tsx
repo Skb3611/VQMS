@@ -1,149 +1,296 @@
-'use client'
+"use client"
 
-import { DashboardSidebar } from '@/components/dashboard-sidebar'
-import { DashboardHeader } from '@/components/dashboard-header'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { LayoutDashboard, Store, BarChart3 } from 'lucide-react'
+import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { useEffect, useState, useCallback } from "react"
+import { toast } from "sonner"
+import { Loader2, RefreshCcw } from "lucide-react"
 
-const sidebarItems = [
-  { label: 'Queue Management', href: '/dashboard/business/queue', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: 'Store Info', href: '/dashboard/business/store', icon: <Store className="w-4 h-4" /> },
-  { label: 'Analytics', href: '/dashboard/business/analytics', icon: <BarChart3 className="w-4 h-4" /> },
-]
+type Token = {
+  id: number
+  tokenNumber: number
+  status: "WAITING" | "CALLED" | "COMPLETED"
+  createdAt: string
+  user: {
+    name: string
+  }
+}
 
-const mockTokens = [
-  { id: 1, number: 40, status: 'SERVING', createdAt: '10:30 AM' },
-  { id: 2, number: 41, status: 'WAITING', createdAt: '10:35 AM' },
-  { id: 3, number: 42, status: 'WAITING', createdAt: '10:40 AM' },
-  { id: 4, number: 43, status: 'WAITING', createdAt: '10:45 AM' },
-]
+type QueueStats = {
+  completedToday: number
+  waitingCount: number
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'WAITING':
-      return 'bg-gray-500'
-    case 'CALLED':
-      return 'bg-blue-500'
-    case 'SERVING':
-      return 'bg-green-500'
-    case 'COMPLETED':
-      return 'bg-green-500'
+    case "WAITING":
+      return "bg-gray-500"
+    case "CALLED":
+      return "bg-blue-500"
+    case "COMPLETED":
+      return "bg-green-500"
     default:
-      return 'bg-gray-500'
+      return "bg-gray-500"
   }
 }
 
 export default function QueueManagementPage() {
+  const [currentlyServing, setCurrentlyServing] = useState<Token | null>(null)
+  const [allActiveTokens, setAllActiveTokens] = useState<Token[]>([])
+  const [stats, setStats] = useState<QueueStats>({ completedToday: 0, waitingCount: 0 })
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  const fetchQueueData = useCallback(async () => {
+    try {
+      const res = await fetch("/api/business/queue")
+      if (!res.ok) throw new Error("Failed to fetch queue data")
+      const data = await res.json()
+      setCurrentlyServing(data.currentlyServing)
+      setAllActiveTokens(data.allActiveTokens)
+      setStats(data.stats)
+    } catch (err) {
+      console.error(err)
+      toast.error("Could not load queue data")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchQueueData()
+    const interval = setInterval(fetchQueueData, 10000) // Poll every 10 seconds
+    return () => clearInterval(interval)
+  }, [fetchQueueData])
+
+  const handleAction = async (action: string, tokenId?: number) => {
+    setActionLoading(true)
+    try {
+      const res = await fetch("/api/business/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, tokenId }),
+      })
+      if (!res.ok) throw new Error(`Failed to ${action.toLowerCase()}`)
+      
+      const data = await res.json()
+      toast.success(data.message)
+      await fetchQueueData()
+    } catch (err) {
+      console.error(err)
+      toast.error(`Error: ${action.toLowerCase()} failed`)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const getTimeInQueue = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / 60000)
+    return `${diffInMinutes} min`
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex h-screen bg-background">
-      <DashboardSidebar items={sidebarItems} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader title="Business Dashboard" userRole="business" />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            {/* Call Next Button - Prominent */}
-            <div className="flex gap-3">
-              <Button size="lg" className="text-base font-semibold px-8 flex-1 md:flex-none">
-                Call Next
-              </Button>
-              <Button size="lg" variant="outline" className="flex-1 md:flex-none">
-                Skip
-              </Button>
-              <Button size="lg" variant="secondary" className="flex-1 md:flex-none">
-                Pause Queue
-              </Button>
+    <main className="flex-1 overflow-y-auto p-6">
+      <div className="mx-auto max-w-6xl space-y-6">
+        {/* Actions Bar */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-3 flex-1">
+            <Button
+              size="lg"
+              className="flex-1 px-8 text-base font-semibold md:flex-none"
+              onClick={() => handleAction("CALL_NEXT")}
+              disabled={actionLoading || stats.waitingCount === 0}
+            >
+              {actionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Call Next
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="flex-1 md:flex-none"
+              onClick={() => currentlyServing && handleAction("SKIP", currentlyServing.id)}
+              disabled={actionLoading || !currentlyServing}
+            >
+              Skip
+            </Button>
+          </div>
+          <Button variant="ghost" size="icon" onClick={fetchQueueData} disabled={loading}>
+            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+
+        {/* Currently Serving Card */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle>Currently Serving</CardTitle>
+            <CardDescription>Active service information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="rounded-lg border bg-background p-8 text-center shadow-sm">
+                <p className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Current Token
+                </p>
+                {currentlyServing ? (
+                  <>
+                    <p className="mb-2 text-7xl font-black text-primary">
+                      #{currentlyServing.tokenNumber}
+                    </p>
+                    <p className="text-xl font-medium text-muted-foreground mb-4">
+                      {currentlyServing.user.name}
+                    </p>
+                    <Button 
+                      variant="default" 
+                      onClick={() => handleAction("COMPLETE", currentlyServing.id)}
+                      disabled={actionLoading}
+                    >
+                      Mark as Completed
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-2xl font-semibold text-muted-foreground py-4">
+                    No active token
+                  </p>
+                )}
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {stats.waitingCount} tokens waiting in line
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card className="border-none bg-blue-500/10">
+                  <CardContent className="pt-6">
+                    <p className="mb-1 text-xs font-medium text-blue-600 uppercase tracking-tight">
+                      Waiting Now
+                    </p>
+                    <p className="text-3xl font-bold text-blue-700">{stats.waitingCount}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-green-500/10">
+                  <CardContent className="pt-6">
+                    <p className="mb-1 text-xs font-medium text-green-600 uppercase tracking-tight">
+                      Served Today
+                    </p>
+                    <p className="text-3xl font-bold text-green-700">{stats.completedToday}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-orange-500/10">
+                  <CardContent className="pt-6">
+                    <p className="mb-1 text-xs font-medium text-orange-600 uppercase tracking-tight">
+                      Avg Wait
+                    </p>
+                    <p className="text-3xl font-bold text-orange-700">-- min</p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Currently Serving Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Currently Serving</CardTitle>
-                <CardDescription>Active service information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="border rounded-lg p-8 bg-muted/50 text-center">
-                    <p className="text-sm text-muted-foreground mb-3">Current Token</p>
-                    <p className="text-6xl font-bold text-primary mb-3">Token #40</p>
-                    <p className="text-muted-foreground">Waiting tokens: 6</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <Card className="border-none bg-blue-50 dark:bg-blue-950/20">
-                      <CardContent className="pt-6">
-                        <p className="text-xs text-muted-foreground mb-2">Avg Service Time</p>
-                        <p className="text-2xl font-bold">8 min</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none bg-green-50 dark:bg-green-950/20">
-                      <CardContent className="pt-6">
-                        <p className="text-xs text-muted-foreground mb-2">Tokens Served</p>
-                        <p className="text-2xl font-bold">39</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none bg-orange-50 dark:bg-orange-950/20">
-                      <CardContent className="pt-6">
-                        <p className="text-xs text-muted-foreground mb-2">Efficiency</p>
-                        <p className="text-2xl font-bold">94%</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Queue Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Queue Details</CardTitle>
-                <CardDescription>All active tokens in your queue</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-muted">
-                      <TableRow>
-                        <TableHead>Token #</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Time in Queue</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockTokens.map((token) => (
-                        <TableRow key={token.id}>
-                          <TableCell className="font-bold text-lg">#{token.number}</TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusColor(token.status)} text-white`}>
-                              {token.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {token.status === 'WAITING' ? '12 min' : '-'}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {token.createdAt}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {token.status === 'WAITING' && (
-                              <Button variant="outline" size="sm">
-                                Remove
+        {/* Queue Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Queue Details</CardTitle>
+            <CardDescription>All active tokens in your queue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-hidden rounded-md border">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="w-[100px]">Token #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Wait Time</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allActiveTokens.length > 0 ? (
+                    allActiveTokens.map((token) => (
+                      <TableRow key={token.id} className={token.status === "CALLED" ? "bg-primary/5 font-medium" : ""}>
+                        <TableCell className="text-lg font-bold">
+                          #{token.tokenNumber}
+                        </TableCell>
+                        <TableCell>{token.user.name}</TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`${getStatusColor(token.status)} text-white`}
+                            variant="secondary"
+                          >
+                            {token.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {getTimeInQueue(token.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {token.status === "WAITING" && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleAction("SKIP", token.id)}
+                                disabled={actionLoading}
+                              >
+                                Skip
                               </Button>
                             )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+                            {token.status === "CALLED" && (
+                              <Button 
+                                variant="default" 
+                                size="sm"
+                                onClick={() => handleAction("COMPLETE", token.id)}
+                                disabled={actionLoading}
+                              >
+                                Complete
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                        No active tokens in the queue
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </main>
   )
 }
+

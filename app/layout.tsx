@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { ClerkProvider } from "@clerk/nextjs"
+import { TooltipProvider } from "@/components/ui/tooltip"
 const merriweather = Merriweather({
   subsets: ["latin"],
   variable: "--font-serif",
@@ -38,7 +39,9 @@ export default function RootLayout({
     >
       <ClerkProvider>
         <body>
-          <ThemeProvider>{children}</ThemeProvider>
+          <TooltipProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </TooltipProvider>
         </body>
       </ClerkProvider>
     </html>

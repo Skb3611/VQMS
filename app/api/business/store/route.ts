@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
   try {
-    const { name, desc } = await req.json()
+    const { name, desc, openTime, closeTime, workingDays, address, category, maxQueueSize } = await req.json()
 
     if (!name || name.trim().length < 3) {
       return NextResponse.json(
@@ -38,6 +38,12 @@ export async function POST(req: Request) {
       data: {
         name,
         desc,
+        openTime,
+        closeTime,
+        workingDays: workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        address,
+        category,
+        maxQueueSize: maxQueueSize || 50,
         user: {
           connect: { id: dbUser?.id },
         },
@@ -59,6 +65,44 @@ export async function POST(req: Request) {
     })
   } catch (err) {
     console.log(err)
+    return new Response("Internal Server Error", { status: 500 })
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const { name, desc, openTime, closeTime, workingDays, address, category, maxQueueSize } = await req.json()
+    const user = await currentUser()
+    const dbUser = await prisma.user.findFirst({
+      where: { clerkId: user?.id },
+      include: { store: true },
+    })
+
+    if (!dbUser || !dbUser.store) {
+      return new Response("Store not found", { status: 404 })
+    }
+
+    const updatedStore = await prisma.store.update({
+      where: { id: dbUser.store.id },
+      data: {
+        name,
+        desc,
+        openTime,
+        closeTime,
+        workingDays,
+        address,
+        category,
+        maxQueueSize,
+      },
+    })
+
+    return NextResponse.json({
+      message: "Store updated",
+      store: updatedStore,
+    })
+  } catch (err) {
+    console.log(err)
+    return new Response("Internal Server Error", { status: 500 })
   }
 }
 

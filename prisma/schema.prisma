@@ -37,6 +37,14 @@ model Store {
   name String
   desc String?
 
+  address     String?
+  category    String?
+  maxQueueSize Int     @default(50)
+
+  openTime    String?
+  closeTime   String?
+  workingDays String[] @default(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 

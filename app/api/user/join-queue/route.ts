@@ -53,6 +53,21 @@ export async function POST(req: Request) {
       return new Response("Store or queue not found", { status: 404 })
     }
 
+    // Check if queue is full
+    const waitingCount = await prisma.token.count({
+      where: {
+        queueId: store.queue.id,
+        status: "WAITING",
+      },
+    })
+
+    if (waitingCount >= store.maxQueueSize) {
+      return NextResponse.json(
+        { message: "Queue is currently full. Please try again later." },
+        { status: 400 }
+      )
+    }
+
     // Get the last token number for this queue
     const lastToken = await prisma.token.findFirst({
       where: { queueId: store.queue.id },

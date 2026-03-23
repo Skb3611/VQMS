@@ -25,7 +25,14 @@ import {
 import { StoreIcon } from "lucide-react"
 export type PrismaStore = Store & {
   queue: Queue
+  openTime?: string
+  closeTime?: string
+  workingDays?: string[]
+  address?: string
+  category?: string
+  maxQueueSize?: number
 }
+
 export default function StorePage() {
   const [store, setStore] = useState<PrismaStore | null>(null)
   const [loading, setLoading] = useState(true)
@@ -79,9 +86,20 @@ export function StoreInfoPage({
       <div className="mx-auto h-full max-w-6xl space-y-6">
         {store ? (
           <Card>
-            <CardHeader>
-              <CardTitle>Store Information</CardTitle>
-              <CardDescription>Your store profile</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Store Information</CardTitle>
+                <CardDescription>Your store profile</CardDescription>
+              </div>
+              <CreateShopForm
+                initialData={store}
+                onShopCreated={onShopCreated}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    Edit Store Profile
+                  </Button>
+                }
+              />
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -117,6 +135,12 @@ export function StoreInfoPage({
                       </label>
                       <p className="mt-1 text-muted-foreground">{store.desc || "No description provided"}</p>
                     </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">
+                        Address
+                      </label>
+                      <p className="mt-1 text-muted-foreground">{store.address || "No address provided"}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -127,34 +151,77 @@ export function StoreInfoPage({
                       <div>
                         <p className="font-medium">Operating Hours</p>
                         <p className="text-sm text-muted-foreground">
-                          Mon-Fri: 9AM-6PM
+                          {store.openTime || "09:00"} - {store.closeTime || "18:00"}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
+                      <CreateShopForm
+                        initialData={store}
+                        onShopCreated={onShopCreated}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit Hours
+                          </Button>
+                        }
+                      />
                     </div>
                     <div className="flex items-center justify-between rounded-lg border p-3">
                       <div>
-                        <p className="font-medium">Service Type</p>
+                        <p className="font-medium">Working Days</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {store.workingDays?.length ? (
+                            store.workingDays.map((day) => (
+                              <Badge key={day} variant="secondary" className="text-[10px] px-1 h-4">
+                                {day.substring(0, 3)}
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground">No working days set</p>
+                          )}
+                        </div>
+                      </div>
+                      <CreateShopForm
+                        initialData={store}
+                        onShopCreated={onShopCreated}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit Days
+                          </Button>
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <p className="font-medium">Service Category</p>
                         <p className="text-sm text-muted-foreground">
-                          Food & Beverage
+                          {store.category || "General"}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
+                      <CreateShopForm
+                        initialData={store}
+                        onShopCreated={onShopCreated}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit Category
+                          </Button>
+                        }
+                      />
                     </div>
                     <div className="flex items-center justify-between rounded-lg border p-3">
                       <div>
                         <p className="font-medium">Queue Limit</p>
                         <p className="text-sm text-muted-foreground">
-                          Max 50 customers
+                          Max {store.maxQueueSize || 50} customers
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
+                      <CreateShopForm
+                        initialData={store}
+                        onShopCreated={onShopCreated}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit Limit
+                          </Button>
+                        }
+                      />
                     </div>
                   </div>
                 </div>

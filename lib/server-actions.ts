@@ -20,6 +20,8 @@ export const updateOnboarding = async (status: "user" | "business") => {
         role: status === "user" ? "USER" : "BUSINESS",
       },
     })
+
+    return
   } catch (err) {
     console.error("Error updating onboarding:", err)
   }

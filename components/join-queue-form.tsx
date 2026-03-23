@@ -61,15 +61,11 @@ export function JoinQueueForm({ storeName = '', storeId, onJoined }: JoinQueueFo
         body: JSON.stringify({ storeId, name: name.trim(), phone: phone.trim() }),
       })
 
-      let data
-      try {
-        data = await res.json()
-      } catch (parseErr) {
-        throw new Error('Server returned an invalid response. Please try again.')
-      }
+      const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || `Error ${res.status}: Failed to join queue`)
+        toast.error(data.message || `Error: ${res.status}`)
+        return
       }
 
       setTokenInfo({ number: data.token.tokenNumber, position: data.position })
@@ -89,7 +85,7 @@ export function JoinQueueForm({ storeName = '', storeId, onJoined }: JoinQueueFo
       }, 3000)
     } catch (err: any) {
       console.error('Join Queue Error:', err)
-      toast.error(err.message || 'An unexpected error occurred while joining the queue')
+      toast.error('An unexpected error occurred. Please check your connection.')
     } finally {
       setLoading(false)
     }

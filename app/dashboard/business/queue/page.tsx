@@ -89,22 +89,18 @@ export default function QueueManagementPage() {
         body: JSON.stringify({ action, tokenId }),
       })
 
-      let data
-      try {
-        data = await res.json()
-      } catch (parseErr) {
-        throw new Error("Server returned an invalid response.")
-      }
+      const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || `Error ${res.status}: Action failed`)
+        toast.error(data.message || `Error: ${res.status}`)
+        return
       }
-      
+
       toast.success(data.message)
       await fetchQueueData()
     } catch (err: any) {
       console.error("Queue Action Error:", err)
-      toast.error(err.message || `Failed to perform ${action.toLowerCase()}`)
+      toast.error("An unexpected error occurred. Please check your connection.")
     } finally {
       setActionLoading(false)
     }

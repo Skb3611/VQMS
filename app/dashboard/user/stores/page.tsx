@@ -41,62 +41,56 @@ export default function BrowseStoresPage() {
   }, [fetchStores])
 
   return (
-    <div className="flex h-screen bg-background">
-      <DashboardSidebar items={sidebarItems} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader title="User Dashboard" userRole="user" />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Stores</CardTitle>
-                <CardDescription>Browse and join queues at different stores</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : stores.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {stores.map((store) => (
-                      <Card key={store.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <CardTitle className="text-base">{store.name}</CardTitle>
-                          <CardDescription className="text-xs line-clamp-2">
-                            {store.description || 'No description available'}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Queue Length</p>
-                              <p className="text-2xl font-bold">{store.queueLength}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">Est. Wait</p>
-                              <p className="text-lg font-semibold">{store.queueLength * 3}m</p>
-                            </div>
-                          </div>
-                          <JoinQueueForm 
-                            storeName={store.name} 
-                            storeId={store.id} 
-                            onJoined={fetchStores}
-                          />
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No stores available at the moment.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+    <main className="flex-1 overflow-y-auto p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Stores</CardTitle>
+            <CardDescription>Browse and join queues at different stores</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : stores.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {stores.map((store) => (
+                  <Card key={store.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{store.name}</CardTitle>
+                      <CardDescription className="text-xs line-clamp-2">
+                        {store.description || 'No description available'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Queue Length</p>
+                          <p className="text-2xl font-bold">{store.queueLength}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Est. Wait</p>
+                          <p className="text-lg font-semibold">{store.queueLength * 3}m</p>
+                        </div>
+                      </div>
+                      <JoinQueueForm 
+                        storeName={store.name} 
+                        storeId={store.id} 
+                        onJoined={fetchStores}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No stores available at the moment.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </main>
   )
 }

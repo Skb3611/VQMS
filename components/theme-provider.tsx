@@ -21,19 +21,6 @@ function ThemeProvider({
   )
 }
 
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false
-  }
-
-  return (
-    target.isContentEditable ||
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT"
-  )
-}
-
 function ThemeHotkey() {
   const { resolvedTheme, setTheme } = useTheme()
 
@@ -47,11 +34,17 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      if (!event.key || event.key.toLowerCase() !== "d") {
         return
       }
 
-      if (isTypingTarget(event.target)) {
+      const target = event.target as HTMLElement
+      if (
+        target.isContentEditable ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT"
+      ) {
         return
       }
 

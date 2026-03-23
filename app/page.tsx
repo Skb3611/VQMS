@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Menu,
   X,
+  ListCheck,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -26,7 +27,9 @@ export default function Home() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="text-2xl font-bold text-primary">QueueFlow</div>
+          <div className="flex items-center gap-2 text-2xl font-bold text-primary">
+            QueueFlow
+          </div>
 
           {/* Desktop Menu */}
           <div className="hidden items-center gap-8 md:flex">

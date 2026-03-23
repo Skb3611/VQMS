@@ -108,10 +108,15 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
         }),
       })
 
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch (parseErr) {
+        throw new Error("Server returned an invalid response. Please try again.")
+      }
 
       if (!res.ok) {
-        throw new Error(data.message || `Failed to ${initialData ? "update" : "create"} shop`)
+        throw new Error(data.message || `Error ${res.status}: Failed to ${initialData ? "update" : "create"} shop`)
       }
 
       if (data?.store) {
@@ -135,8 +140,8 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
         router.refresh()
       }
     } catch (err: any) {
-      console.error(err)
-      toast.error(err.message || "Something went wrong")
+      console.error("Store Form Error:", err)
+      toast.error(err.message || "An unexpected error occurred")
     } finally {
       setLoading(false)
     }

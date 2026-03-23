@@ -88,14 +88,23 @@ export default function QueueManagementPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, tokenId }),
       })
-      if (!res.ok) throw new Error(`Failed to ${action.toLowerCase()}`)
+
+      let data
+      try {
+        data = await res.json()
+      } catch (parseErr) {
+        throw new Error("Server returned an invalid response.")
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || `Error ${res.status}: Action failed`)
+      }
       
-      const data = await res.json()
       toast.success(data.message)
       await fetchQueueData()
-    } catch (err) {
-      console.error(err)
-      toast.error(`Error: ${action.toLowerCase()} failed`)
+    } catch (err: any) {
+      console.error("Queue Action Error:", err)
+      toast.error(err.message || `Failed to perform ${action.toLowerCase()}`)
     } finally {
       setActionLoading(false)
     }
@@ -120,11 +129,11 @@ export default function QueueManagementPage() {
     <main className="flex-1 overflow-y-auto p-6">
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Actions Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3 flex-1">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex gap-3 w-full sm:w-auto">
             <Button
               size="lg"
-              className="flex-1 px-8 text-base font-semibold md:flex-none"
+              className="flex-1 px-8 text-base font-semibold"
               onClick={() => handleAction("CALL_NEXT")}
               disabled={actionLoading || stats.waitingCount === 0}
             >
@@ -134,14 +143,14 @@ export default function QueueManagementPage() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="flex-1 md:flex-none"
+              className="flex-1"
               onClick={() => currentlyServing && handleAction("SKIP", currentlyServing.id)}
               disabled={actionLoading || !currentlyServing}
             >
               Skip
             </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={fetchQueueData} disabled={loading}>
+          <Button variant="ghost" size="icon" onClick={fetchQueueData} disabled={loading} className="self-end sm:self-auto">
             <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -214,8 +223,8 @@ export default function QueueManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Queue Table */}
-        <Card>
+        {/* Queue Table - Desktop */}
+        <Card className="hidden md:block">
           <CardHeader>
             <CardTitle>Queue Details</CardTitle>
             <CardDescription>All active tokens in your queue</CardDescription>
@@ -289,6 +298,59 @@ export default function QueueManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Queue List - Mobile */}
+        <div className="md:hidden space-y-4">
+          <h3 className="font-bold text-lg px-1">Queue Details</h3>
+          {allActiveTokens.length > 0 ? (
+            allActiveTokens.map((token) => (
+              <Card key={token.id} className={token.status === "CALLED" ? "border-primary" : ""}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-2xl font-black text-primary">#{token.tokenNumber}</p>
+                      <p className="font-medium">{token.user.name}</p>
+                    </div>
+                    <Badge className={`${getStatusColor(token.status)} text-white`}>
+                      {token.status}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Wait: {getTimeInQueue(token.createdAt)}
+                    </p>
+                    <div className="flex gap-2">
+                      {token.status === "WAITING" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleAction("SKIP", token.id)}
+                          disabled={actionLoading}
+                        >
+                          Skip
+                        </Button>
+                      )}
+                      {token.status === "CALLED" && (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => handleAction("COMPLETE", token.id)}
+                          disabled={actionLoading}
+                        >
+                          Complete
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
+              No active tokens in the queue
+            </p>
+          )}
+        </div>
       </div>
     </main>
   )

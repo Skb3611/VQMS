@@ -16,10 +16,14 @@ export default function UserDashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <DashboardSidebar items={sidebarItems} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader title="User Dashboard" userRole="user" />
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <DashboardHeader 
+          title="User Dashboard" 
+          userRole="user" 
+          sidebarItems={sidebarItems} 
+        />
         {children}
       </div>
     </div>

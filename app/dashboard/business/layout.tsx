@@ -17,10 +17,14 @@ const sidebarItems = [
 ]
 const BusinessLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex h-screen flex-1 bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <DashboardSidebar items={sidebarItems} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <DashboardHeader title="Business Dashboard" userRole="business" />
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        <DashboardHeader 
+          title="Business Dashboard" 
+          userRole="business" 
+          sidebarItems={sidebarItems} 
+        />
         {children}
       </div>
     </div>

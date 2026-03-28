@@ -41,7 +41,7 @@ export default function OnboardingPage() {
             <div
               onClick={async () => {
                 await updateOnboarding("user")
-                router.push("/dashboard")
+                router.push("/dashboard/user")
               }}
               className="transition-all duration-200 focus:outline-none"
             >
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
             <div
               onClick={async () => {
                 await updateOnboarding("business")
-                router.push("/dashboard")
+                router.push("/dashboard/business")
               }}
               className="transition-all duration-200 focus:outline-none"
             >

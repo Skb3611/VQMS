@@ -55,9 +55,10 @@ export async function POST() {
         })
       }
 
-      // 3. Finally, delete the user themselves
-      await tx.user.delete({
+      // 3. Reset the user's role instead of deleting the user record
+      await tx.user.update({
         where: { id: dbUser.id },
+        data: { role: null },
       })
     })
 

@@ -1,9 +1,18 @@
 import prisma from "@/lib/db"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const place = searchParams.get('place')
+
     const stores = await prisma.store.findMany({
+      where: place ? {
+        place: {
+          contains: place,
+          mode: 'insensitive'
+        }
+      } : {},
       include: {
         queue: {
           include: {
@@ -25,6 +34,7 @@ export async function GET() {
       id: store.id,
       name: store.name,
       description: store.desc,
+      place: store.place,
       queueLength: store.queue?._count.tokens || 0,
     }))
 

@@ -4,25 +4,25 @@ import { useRouter } from "next/navigation"
 import React, { useEffect } from "react"
 
 const page = () => {
-  const { user } = useUser()
+  const { user, isLoaded } = useUser()
   const router = useRouter()
   useEffect(() => {
-    console.log(user?.publicMetadata)
-    if (!user) return
-    if (!user?.publicMetadata.onboarding) {
+    if (!isLoaded || !user) return
+    
+    console.log("Dashboard redirect check:", user.publicMetadata)
+    
+    if (!user.publicMetadata.onboarding) {
       router.push("/onboarding")
     } else if (
-      user?.publicMetadata.onboarding &&
-      user?.publicMetadata.role === "USER"
+      user.publicMetadata.role === "USER"
     ) {
       router.push("/dashboard/user")
     } else if (
-      user?.publicMetadata.onboarding &&
-      user?.publicMetadata.role === "BUSINESS"
+      user.publicMetadata.role === "BUSINESS"
     ) {
       router.push("/dashboard/business")
     }
-  }, [user])
+  }, [user, isLoaded])
 
   return <></>
 }

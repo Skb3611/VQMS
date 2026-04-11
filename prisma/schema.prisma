@@ -38,6 +38,7 @@ model Store {
   desc String?
 
   address     String?
+  place       String?
   category    String?
   maxQueueSize Int     @default(50)
 

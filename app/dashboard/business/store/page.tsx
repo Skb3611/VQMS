@@ -22,13 +22,26 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { StoreIcon } from "lucide-react"
+import { StoreIcon, Trash2, Loader2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+
 export type PrismaStore = Store & {
   queue: Queue
   openTime?: string
   closeTime?: string
   workingDays?: string[]
   address?: string
+  place?: string
   category?: string
   maxQueueSize?: number
 }
@@ -81,6 +94,35 @@ export function StoreInfoPage({
   store: PrismaStore | null
   onShopCreated: (shop: PrismaStore) => void
 }) {
+  const [deleting, setDeleting] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const router = useRouter()
+
+  const handleDeleteStore = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/business/store", {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to delete store")
+      }
+
+      toast.success("Store deleted successfully")
+      setIsDialogOpen(false)
+      // We can't use onShopCreated(null) because of the type, 
+      // so we trigger a refresh and the parent component will re-fetch
+      router.refresh()
+      window.location.reload() // Force reload to show empty state
+    } catch (err) {
+      console.error("Delete error:", err)
+      toast.error("Failed to delete store. Please try again.")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <main className="flex-1 overflow-y-auto p-6">
       <div className="mx-auto h-full max-w-6xl space-y-6">
@@ -91,15 +133,58 @@ export function StoreInfoPage({
                 <CardTitle>Store Information</CardTitle>
                 <CardDescription>Your store profile</CardDescription>
               </div>
-              <CreateShopForm
-                initialData={store}
-                onShopCreated={onShopCreated}
-                trigger={
-                  <Button variant="outline" size="sm">
-                    Edit Store Profile
-                  </Button>
-                }
-              />
+              <div className="flex items-center gap-2">
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Store
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Are you absolutely sure?</DialogTitle>
+                      <DialogDescription>
+                        This action cannot be undone. This will permanently delete your
+                        store, its queue, and all associated tokens.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDialogOpen(false)}
+                        disabled={deleting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDeleteStore}
+                        disabled={deleting}
+                      >
+                        {deleting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          "Delete Store"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <CreateShopForm
+                  initialData={store}
+                  onShopCreated={onShopCreated}
+                  trigger={
+                    <Button variant="outline" size="sm">
+                      Edit Store Profile
+                    </Button>
+                  }
+                />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -140,6 +225,12 @@ export function StoreInfoPage({
                         Address
                       </label>
                       <p className="mt-1 text-muted-foreground">{store.address || "No address provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">
+                        Place / City
+                      </label>
+                      <p className="mt-1 text-muted-foreground">{store.place || "No place provided"}</p>
                     </div>
                   </div>
                 </div>

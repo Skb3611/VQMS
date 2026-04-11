@@ -12,12 +12,12 @@ import { useUser } from "@clerk/nextjs"
 export default function OnboardingPage() {
   const [selected, setSelected] = useState<"user" | "business" | null>(null)
   const router = useRouter()
-  const { user } = useUser()
+  const { user, isLoaded } = useUser()
   useEffect(() => {
-    if (user?.publicMetadata.onboarding) {
+    if (isLoaded && user?.publicMetadata.onboarding) {
       router.push("/dashboard")
     }
-  }, [user])
+  }, [user, isLoaded])
   return (
     <main className="flex min-h-screen flex-col bg-background">
       {/* Header */}

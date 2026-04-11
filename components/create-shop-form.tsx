@@ -40,6 +40,7 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
   const [shopName, setShopName] = useState(initialData?.name || "")
   const [description, setDescription] = useState(initialData?.desc || "")
   const [address, setAddress] = useState(initialData?.address || "")
+  const [place, setPlace] = useState(initialData?.place || "")
   const [category, setCategory] = useState(initialData?.category || "General")
   const [maxQueueSize, setMaxQueueSize] = useState(initialData?.maxQueueSize || 50)
   const [openTime, setOpenTime] = useState(initialData?.openTime || "09:00")
@@ -57,6 +58,7 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
       setShopName(initialData.name)
       setDescription(initialData.desc || "")
       setAddress(initialData.address || "")
+      setPlace(initialData.place || "")
       setCategory(initialData.category || "General")
       setMaxQueueSize(initialData.maxQueueSize || 50)
       setOpenTime(initialData.openTime || "09:00")
@@ -100,6 +102,7 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
           name: shopName.trim(),
           desc: description.trim(),
           address: address.trim(),
+          place: place.trim(),
           category,
           maxQueueSize: Number(maxQueueSize),
           openTime,
@@ -128,6 +131,7 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
             setShopName("")
             setDescription("")
             setAddress("")
+            setPlace("")
             setCategory("General")
             setMaxQueueSize(50)
           }
@@ -228,12 +232,22 @@ export function CreateShopForm({ onShopCreated, initialData, trigger }: CreateSh
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Store Address</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
-                  placeholder="Enter shop address"
+                  placeholder="Store physical address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="place">Place / City</Label>
+                <Input
+                  id="place"
+                  placeholder="e.g. New York, Downtown"
+                  value={place}
+                  onChange={(e) => setPlace(e.target.value)}
                 />
               </div>
 

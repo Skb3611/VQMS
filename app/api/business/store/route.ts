@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
   try {
-    const { name, desc, openTime, closeTime, workingDays, address, category, maxQueueSize } = await req.json()
+    const { name, desc, openTime, closeTime, workingDays, address, place, category, maxQueueSize } = await req.json()
 
     if (!name || name.trim().length < 3) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         closeTime,
         workingDays: workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         address,
+        place,
         category,
         maxQueueSize: maxQueueSize || 50,
         user: {
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { name, desc, openTime, closeTime, workingDays, address, category, maxQueueSize } = await req.json()
+    const { name, desc, openTime, closeTime, workingDays, address, place, category, maxQueueSize } = await req.json()
     const user = await currentUser()
     const dbUser = await prisma.user.findFirst({
       where: { clerkId: user?.id },
@@ -91,6 +92,7 @@ export async function PATCH(req: Request) {
         closeTime,
         workingDays,
         address,
+        place,
         category,
         maxQueueSize,
       },
@@ -125,5 +127,51 @@ export async function GET(req: Request) {
     })
   } catch (err) {
     console.log(err)
+    return new Response("Internal Server Error", { status: 500 })
+  }
+}
+
+export async function DELETE() {
+  try {
+    const user = await currentUser()
+    const dbUser = await prisma.user.findFirst({
+      where: { clerkId: user?.id },
+      include: { store: { include: { queue: true } } },
+    })
+
+    if (!dbUser || !dbUser.store) {
+      return new Response("Store not found", { status: 404 })
+    }
+
+    // Prisma will handle cascading deletes if configured, 
+    // but let's be explicit if needed or rely on the schema.
+    // In our schema, we should check if we need to delete tokens first.
+    
+    const storeId = dbUser.store.id
+    const queueId = dbUser.store.queue?.id
+
+    await prisma.$transaction(async (tx) => {
+      if (queueId) {
+        // Delete tokens associated with the queue
+        await tx.token.deleteMany({
+          where: { queueId: queueId },
+        })
+        // Delete the queue
+        await tx.queue.delete({
+          where: { id: queueId },
+        })
+      }
+      // Delete the store
+      await tx.store.delete({
+        where: { id: storeId },
+      })
+    })
+
+    return NextResponse.json({
+      message: "Store deleted successfully",
+    })
+  } catch (err) {
+    console.error("Delete Store Error:", err)
+    return new Response("Internal Server Error", { status: 500 })
   }
 }

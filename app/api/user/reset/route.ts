@@ -73,7 +73,7 @@ export async function POST() {
       message: "Account reset successfully",
     })
   } catch (err) {
-    console.error("Account Reset Error:", err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }

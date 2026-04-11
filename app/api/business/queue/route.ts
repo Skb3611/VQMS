@@ -59,7 +59,7 @@ export async function GET(req: Request) {
       },
     })
   } catch (err) {
-    console.error(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
 
     return new Response("Invalid action", { status: 400 })
   } catch (err) {
-    console.error(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }

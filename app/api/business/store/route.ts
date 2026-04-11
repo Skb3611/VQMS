@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       store: store,
     })
   } catch (err) {
-    console.log(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }
@@ -103,7 +103,7 @@ export async function PATCH(req: Request) {
       store: updatedStore,
     })
   } catch (err) {
-    console.log(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }
@@ -126,7 +126,7 @@ export async function GET(req: Request) {
       store,
     })
   } catch (err) {
-    console.log(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }
@@ -171,7 +171,7 @@ export async function DELETE() {
       message: "Store deleted successfully",
     })
   } catch (err) {
-    console.error("Delete Store Error:", err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }

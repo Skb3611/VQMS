@@ -23,6 +23,6 @@ export const updateOnboarding = async (status: "user" | "business") => {
 
     return
   } catch (err) {
-    console.error("Error updating onboarding:", err)
+    console.log("API Error:", err)
   }
 }

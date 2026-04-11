@@ -71,7 +71,7 @@ export async function GET() {
       historicalTokens,
     })
   } catch (err) {
-    console.error(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }

@@ -40,7 +40,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ stores: formattedStores })
   } catch (err) {
-    console.error(err)
+    console.log("API Error:", err)
     return new Response("Internal Server Error", { status: 500 })
   }
 }

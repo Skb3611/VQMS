@@ -16,6 +16,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { ResetAccountButton } from "./reset-account-button"
 
 interface DashboardHeaderProps {
   title: string
@@ -72,6 +73,9 @@ export function DashboardHeader({
                       </Link>
                     ))}
                   </nav>
+                </div>
+                <div className="p-4 border-t">
+                  <ResetAccountButton />
                 </div>
               </SheetContent>
             </Sheet>
